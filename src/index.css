@@ -1,0 +1,537 @@
+@import "tailwindcss";
+
+/* ---------- Fonts (bundled, so the app looks right with no internet) ---------- */
+@font-face {
+  font-family: "Instrument Serif";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../node_modules/@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Instrument Serif";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../node_modules/@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-700-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../node_modules/@fontsource/inter/files/inter-latin-500-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2") format("woff2");
+}
+
+@theme {
+  --font-serif: "Instrument Serif", "Playfair Display", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+
+  --color-obsidian: #04050a;
+  --color-void: #07090f;
+  --color-hud: rgba(255, 255, 255, 0.15);
+  --color-amber: #ffb347;
+  --color-signal: #7fe3ff;
+  --color-alert: #ff5a4e;
+  --color-warn: #f5b83d;
+  --color-ok: #6ee7a8;
+  --color-parchment: #f4f1e8;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  background: var(--color-obsidian);
+  color: var(--color-parchment);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(255, 179, 71, 0.35);
+}
+
+/* ---------- HUD primitives ---------- */
+.hud-border {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.hud-glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.hud-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(244, 241, 232, 0.55);
+}
+.text-balance {
+  text-wrap: balance;
+}
+
+/* ---------- Film grain + vignette ---------- */
+.film-grain {
+  pointer-events: none;
+  position: fixed;
+  inset: -50%;
+  z-index: 60;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation: grain 0.9s steps(6) infinite;
+}
+.vignette {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 59;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.65) 100%);
+}
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-3%, 2%); }
+  40% { transform: translate(2%, -4%); }
+  60% { transform: translate(-4%, -2%); }
+  80% { transform: translate(3%, 4%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ---------- Scanlines (used on CRT surfaces) ---------- */
+.scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.04) 0px,
+    rgba(255, 255, 255, 0.04) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* ---------- Blueprint mode for the 3D viewer ---------- */
+.blueprint-grid {
+  background-color: #062044;
+  background-image:
+    linear-gradient(rgba(127, 227, 255, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(127, 227, 255, 0.18) 1px, transparent 1px),
+    linear-gradient(rgba(127, 227, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(127, 227, 255, 0.07) 1px, transparent 1px);
+  background-size: 80px 80px, 80px 80px, 16px 16px, 16px 16px;
+}
+
+model-viewer {
+  --poster-color: transparent;
+  --progress-bar-color: transparent;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+/* ---------- Patch SVG sizing ---------- */
+.patch-svg svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ---------- Drop cap for story chapters ---------- */
+.dropcap::first-letter {
+  font-family: var(--font-serif);
+  float: left;
+  font-size: 4.6em;
+  line-height: 0.82;
+  padding: 0.08em 0.12em 0 0;
+  color: var(--color-amber);
+}
+
+
+/* ====================================================================== */
+/* THE BOOK                                                                */
+/* Everything inside a page is sized in em. The book sets one font-size    */
+/* (page width / 26), so the whole layout scales with the page.            */
+/* ====================================================================== */
+.book-cover {
+  position: absolute;
+  inset: -0.55em -0.6em;
+  border-radius: 0.5em;
+  background: linear-gradient(180deg, #2a1d14, #17100b);
+  box-shadow: 0 1.6em 4em rgba(0, 0, 0, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.book-spine {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 3.2em;
+  transform: translateX(-50%);
+  z-index: 200;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.16) 42%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0.16) 58%, transparent);
+}
+.leaf-stack {
+  position: absolute;
+  top: 0;
+  perspective: 2600px;
+  perspective-origin: 0% 50%;
+}
+.leaf {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.leaf-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.leaf-back {
+  transform: rotateY(180deg);
+}
+.leaf-shade {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(20, 12, 4, 0.95), rgba(20, 12, 4, 0.35) 55%, rgba(20, 12, 4, 0.6));
+}
+
+.paper {
+  position: relative;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  padding: 1.15em 1.9em 0.9em;
+  color: #211d17;
+  font-family: var(--font-serif);
+  line-height: 1.42;
+  background-color: #efe8d6;
+  background-image:
+    radial-gradient(120% 90% at 50% 40%, rgba(255, 252, 240, 0.9), rgba(239, 232, 214, 0) 62%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.26  0 0 0 0 0.12  0 0 0 0.11 0'/></filter><rect width='100%' height='100%' filter='url(%23p)'/></svg>");
+}
+.paper-left {
+  padding-right: 2.3em;
+  box-shadow: inset -2.2em 0 2.4em -2em rgba(40, 24, 8, 0.55);
+  border-radius: 0.25em 0 0 0.25em;
+}
+.paper-right {
+  padding-left: 2.3em;
+  box-shadow: inset 2.2em 0 2.4em -2em rgba(40, 24, 8, 0.55);
+  border-radius: 0 0.25em 0.25em 0;
+}
+.paper-single {
+  box-shadow: inset 1.4em 0 1.8em -1.5em rgba(40, 24, 8, 0.45);
+  border-radius: 0.2em 0.3em 0.3em 0.2em;
+}
+.paper-head,
+.paper-foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  font-family: var(--font-mono);
+  font-size: 0.46em;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(33, 29, 23, 0.55);
+}
+.paper-head {
+  padding-bottom: 0.9em;
+  margin-bottom: 1.6em;
+  border-bottom: 1px solid rgba(33, 29, 23, 0.18);
+}
+.paper-foot {
+  padding-top: 1.2em;
+  justify-content: center;
+}
+.paper-body {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 0.75em;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(33, 29, 23, 0.25) transparent;
+}
+.paper p.story {
+  flex: none;
+  font-size: 1em;
+  line-height: 1.42;
+  color: #2a251d;
+  hyphens: manual;
+}
+.paper .dropcap::first-letter {
+  float: left;
+  font-family: var(--font-serif);
+  font-size: 3.5em;
+  line-height: 0.78;
+  padding: 0.07em 0.1em 0 0;
+  color: #a4471f;
+}
+.paper .rust {
+  color: #a4471f;
+}
+
+/* picture slots: take whatever height is left on the page; vanish if that is too little */
+.fig-slot {
+  container-type: size;
+  flex: 1 1 0;
+  min-height: 0;
+}
+@container (max-height: 5.2em) {
+  .fig-slot > * {
+    display: none !important;
+  }
+}
+.plate {
+  background: #fbf8ee;
+  padding: 0.28em;
+  box-shadow: 0 0.25em 0.7em rgba(40, 24, 8, 0.28), 0 0 0 1px rgba(33, 29, 23, 0.12);
+}
+.plate-shimmer {
+  background: linear-gradient(100deg, #1b1d26 20%, #2a2d3a 40%, #1b1d26 60%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+.shimmer {
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0.06) 20%, rgba(255, 255, 255, 0.16) 40%, rgba(255, 255, 255, 0.06) 60%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* clickable words */
+.term {
+  color: #8a3413;
+  cursor: pointer;
+  border-bottom: 0.09em dotted currentColor;
+  border-radius: 0.12em;
+  padding: 0 0.06em;
+  transition: background-color 0.15s, color 0.15s;
+}
+.term:hover,
+.term.is-active,
+.term:focus-visible {
+  background: rgba(181, 83, 42, 0.16);
+  color: #6d2508;
+  outline: none;
+}
+.term-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0.35em 0.75em;
+  border: 1px solid rgba(138, 52, 19, 0.45);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.5em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7a2e10;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.term-chip:hover,
+.term-chip.is-active,
+.term-chip:focus-visible {
+  background: rgba(181, 83, 42, 0.14);
+  border-color: #8a3413;
+  outline: none;
+}
+
+/* C.U.R.I.O.'s sticky note */
+.sticky-note {
+  flex: none;
+  position: relative;
+  align-self: flex-start;
+  max-width: 92%;
+  padding: 0.7em 0.9em 0.75em;
+  background: linear-gradient(180deg, #f6e7a1, #f0dc86);
+  box-shadow: 0 0.35em 0.8em rgba(40, 24, 8, 0.28);
+  transform: rotate(-1.1deg);
+}
+.sticky-note::before {
+  content: "";
+  position: absolute;
+  top: -0.45em;
+  left: 50%;
+  width: 3.4em;
+  height: 0.95em;
+  transform: translateX(-50%) rotate(1.5deg);
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+/* buttons printed on paper */
+.ink-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  padding: 0.95em 1.4em;
+  background: #1b1d26;
+  color: #f4f1e8;
+  font-family: var(--font-mono);
+  font-size: 0.5em;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.15s;
+}
+.ink-btn:hover {
+  background: #a4471f;
+  transform: translateY(-1px);
+}
+.ink-btn.ghost {
+  background: transparent;
+  color: #1b1d26;
+  box-shadow: inset 0 0 0 1px rgba(27, 29, 38, 0.5);
+}
+.ink-btn.ghost:hover {
+  background: rgba(27, 29, 38, 0.08);
+}
+
+/* page corners you can click to turn the page */
+.page-corner {
+  position: absolute;
+  bottom: 0;
+  z-index: 210;
+  width: 2em;
+  height: 2em;
+  cursor: pointer;
+  transition: width 0.25s ease, height 0.25s ease;
+  filter: drop-shadow(0 0 0.35em rgba(0, 0, 0, 0.35));
+}
+.page-corner:hover,
+.page-corner:focus-visible {
+  width: 3.6em;
+  height: 3.6em;
+  outline: none;
+}
+.page-corner.next {
+  right: 0;
+  background: linear-gradient(315deg, #17100b 0 49.5%, #c9bfa6 50%, #f7f2e4 68%, #efe8d6 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  border-top-left-radius: 0.2em;
+}
+.page-corner.prev {
+  left: 0;
+  background: linear-gradient(45deg, #17100b 0 49.5%, #c9bfa6 50%, #f7f2e4 68%, #efe8d6 100%);
+  border-top-right-radius: 0.2em;
+}
+.page-corner[disabled] {
+  display: none;
+}
+
+/* the book's front endpaper (left side when the book is first opened) */
+.endpaper {
+  height: 100%;
+  width: 100%;
+  border-radius: 0.25em 0 0 0.25em;
+  background-color: #1c2a3a;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(255, 179, 71, 0.16), transparent 42%),
+    radial-gradient(circle at 80% 75%, rgba(127, 227, 255, 0.12), transparent 45%),
+    repeating-radial-gradient(circle at 50% 120%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 0.7em);
+  box-shadow: inset -2.2em 0 2.4em -2em rgba(0, 0, 0, 0.7);
+}
+
+/* draggable divider between the 3D panel and the book */
+.split-handle {
+  touch-action: none;
+  cursor: col-resize;
+}
+
+@media print {
+  [data-term-card] {
+    display: none !important;
+  }
+}
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---------- Print: only the certificate ---------- */
+@media print {
+  @page {
+    size: landscape;
+    margin: 0;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  #certificate-print,
+  #certificate-print * {
+    visibility: visible !important;
+  }
+  #certificate-print {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: auto !important;
+  }
+  .film-grain,
+  .vignette {
+    display: none !important;
+  }
+}
